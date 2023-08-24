@@ -50,7 +50,7 @@ def start(ad, sp, sb, pr, bs, to):
     else:
         words = ["This", ""]
     click.secho(f"{words[0]} address{words[1]} will be checked: {addresses} at speed {sp}\nstopbits\t{sb}\n"
-                f"parity\t\t{pr}\nbytesize\t{bs}\ntimeout\t\t{to}", fg='green', bg='yellow')
+                f"parity\t\t{pr}\nbytesize\t{bs}\ntimeout\t\t{to}", fg='green')
 
 if __name__ == '__main__':
     start()
