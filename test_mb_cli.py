@@ -35,11 +35,11 @@ def get_addresses(input_str):
 @click.command()
 @click.option('-ad', prompt='Input a range of addresses', help='Addresses you need to check', required=True,
               default='15', show_default=False)
-@click.option('-sp', default=9600, show_default=True)
-@click.option('-sb', default=1, show_default=True)
-@click.option('-pr', default='none', show_default=True, help='even, odd')
-@click.option('-bs', default=8, show_default=True)
-@click.option('-to', default=0.5, show_default=True)
+@click.option('-sp', default=9600, show_default=True, help='speed (bod)')
+@click.option('-sb', default=1, show_default=True, help='stopbits [1 | 2]')
+@click.option('-pr', default='none', show_default=True, help='paring [none | even | odd]')
+@click.option('-bs', default=8, show_default=True, help='bytesize [5 | 6 | 7 | 8]')
+@click.option('-to', default=0.5, show_default=True, help='timeout (sec)')
 def start(ad, sp, sb, pr, bs, to):
     addresses = []
 
