@@ -1,34 +1,30 @@
+#!/usr/bin/env python3
+
 import re
-import click
 import minimalmodbus
-
-
-def ask_addr() -> str:
-    return input("Input a range of addresses separated by a hyphen\n"
-                 "and/or a single addresses separated by a space [121 95-90 15 41-43]: ")
 
 
 def check_for_numbers(input_str: str) -> bool:
     if len(re.findall("[^0-9 -]", input_str)) > 0:
-        print("\nCheck the input string! You should input only numbers, space and hyphen.\n")
+        print("\nНеверный формат адресов\n")
         return False
     return True
 
 
 def get_addresses(input_str: str) -> list:
-    # checking the string for extra characters
+    # проверка состава символов строки с адресами
     if not check_for_numbers(input_str):
         return []
 
     addr_out = []
 
     for num in input_str.split():
-        if num.isdigit(): # collect alone digits
+        if num.isdigit(): # сбор одиночных адресов
             addr_out.append(int(num))
-        else: # collect range of digits
+        else: # сбор диапазонов адресов
             nums = num.split('-')
             if len(nums[0]) == 0 or len(nums[1]) == 0:
-                print("\nWrong range!\n")
+                print("\nНеверный диапазон\n")
                 return []
             else:
                 nums = sorted(int(x) for x in nums)
@@ -37,25 +33,38 @@ def get_addresses(input_str: str) -> list:
     return sorted(addr_out)
 
 
-addresses = []
-
-while True:
-    addresses = get_addresses(ask_addr())
-    if len(addresses) == 0:
-        continue
-    else:
-        break
-
-if len(addresses) > 1:
-    words = ["These", "es"]
-else:
-    words = ["This", ""]
-print(f"{words[0]} address{words[1]} will be checked: {addresses}")
-
-"""@click.command()
-@click.argument()
 def start():
-    pass
+    addresses = ""
+    baudrate = 9600
+    databits = 8
+    parity = "none"
+    stopbits = 1
+    timeout = 500
+
+    with open("setting.txt", "r") as setf:
+        for line in setf:
+            if line.startswith("addresses: "):
+                addresses = get_addresses(line.split(": ")[1].rstrip("\n"))
+            elif line.startswith("baudrate: "):
+                baudrate = int(line.split()[1])
+            elif line.startswith("databits: "):
+                databits = int(line.split()[1])
+            elif line.startswith("parity: "):
+                parity = line.split()[1]
+            elif line.startswith("stopbits: "):
+                stopbits = int(line.split()[1])
+            elif line.startswith("timeout: "):
+                timeout = int(line.split()[1])
+
+    if len(addresses) != 0:
+        if len(addresses) > 1:
+            words = ["Эти", "а", "ут", "ы"]
+        else:
+            words = ["Этот", "", "ет", ""]
+        print(f"{words[0]} адрес{words[1]} буд{words[2]} проверен{words[3]}: {addresses}\n"
+            "со следующими натройками:\n"
+            f"{baudrate} : {databits} {parity} {stopbits}")
+
 
 if __name__ == '__main__':
-    start()"""
+    start()
