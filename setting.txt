@@ -11,7 +11,7 @@ addresses: 2 15 30 36 40-43 51-53 70-73 80-100
 baudrate: 9600
 
 # Количество битов данных: [7] или [8]
-databits: 8
+bytesize: 8
 
 # Бит чётности: [none], [even] или [odd]
 parity: none
@@ -19,5 +19,8 @@ parity: none
 # Стоповые биты: [1] или [2]
 stopbits: 1
 
-# Таймаут опроса устройств, мс
-timeout: 500
+# Таймаут опроса устройств, с
+timeout: 0.5
+
+# Порт
+port: /dev/ttyUSB485-1

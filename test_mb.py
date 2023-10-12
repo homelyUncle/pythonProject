@@ -36,10 +36,11 @@ def get_addresses(input_str: str) -> list:
 def get_settings() -> tuple:
     addresses = ""
     baudrate = 9600
-    databits = 8
+    bytesize = 8
     parity = "none"
     stopbits = 1
-    timeout = 500
+    timeout = 0.5
+    port = "/dev/ttyRS485-1"
     with open("setting.txt", "r") as setf:
         for line in setf:
             if line.startswith("addresses: "):
@@ -47,27 +48,53 @@ def get_settings() -> tuple:
             elif line.startswith("baudrate: "):
                 baudrate = int(line.split(": ")[1])
             elif line.startswith("databits: "):
-                databits = int(line.split(": ")[1])
+                bytesize = int(line.split(": ")[1])
             elif line.startswith("parity: "):
                 parity = line.split(": ")[1]
             elif line.startswith("stopbits: "):
                 stopbits = int(line.split(": ")[1])
             elif line.startswith("timeout: "):
-                timeout = int(line.split(": ")[1])
-    return addresses, baudrate, databits, parity, stopbits, timeout
+                timeout = float(line.split(": ")[1])
+            elif line.startswith("port: "):
+                port = line.split(": ")[1]
+    return addresses, baudrate, bytesize, parity, stopbits, timeout, port
+
+
+def cheking(port: str, addr: int, br: int, bs: int, pr: str, sb: int, to: float) -> bool:
+    device = minimalmodbus.Instrument(port=port, slaveaddress=addr, 
+                                      close_port_after_each_call=True)
+    device.serial.baudrate = br
+    device.serial.bytesize = bs
+    device.serial.parity = pr
+    device.serial.stopbits = sb
+    device.serial.timeout = to
+
+    try:
+        device.read_bit(1)
+        return True
+    except IOError:
+        print(f"Ошибка проверки связи с устройством по адресу {device.address}")
+        return False
 
 
 def start():
-    addresses = []
-    addresses, baudrate, databits, parity, stopbits, timeout = get_settings()
-    if len(addresses) != 0:
-        if len(addresses) > 1:
+    addresses_online = []
+    addresses_to_check = []
+    addresses_to_check, baudrate, bytesize, parity, stopbits, timeout, port = get_settings()
+    if len(addresses_to_check) != 0:
+        if len(addresses_to_check) > 1:
             words = ["Эти", "а", "ут", "ы"]
         else:
             words = ["Этот", "", "ет", ""]
-        print(f"{words[0]} адрес{words[1]} буд{words[2]} проверен{words[3]}: {addresses}\n"
+        print(f"{words[0]} адрес{words[1]} буд{words[2]} проверен{words[3]}: {addresses_to_check}\n"
               "со следующими натройками:\n"
-              f"{baudrate} : {databits} {parity} {stopbits} (timeout: {timeout})")
+              f"Порт: {port} : {baudrate} : {bytesize} {parity} {stopbits} (timeout: {timeout})")
+    
+    for address in addresses_to_check:
+        if cheking(port, address, baudrate, bytesize, parity, stopbits, timeout):
+            addresses_online.append(address)
+
+    print(f"Устройства на связи со следующими адресами:\n{addresses_online}")
 
 
 if __name__ == '__main__':
