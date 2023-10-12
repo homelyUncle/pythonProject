@@ -67,7 +67,7 @@ def start():
             words = ["Этот", "", "ет", ""]
         print(f"{words[0]} адрес{words[1]} буд{words[2]} проверен{words[3]}: {addresses}\n"
               "со следующими натройками:\n"
-              f"{baudrate} : {databits}{parity}{stopbits}")
+              f"{baudrate} : {databits} {parity} {stopbits} (timeout: {timeout})")
 
 
 if __name__ == '__main__':
