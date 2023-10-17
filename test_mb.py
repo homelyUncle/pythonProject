@@ -4,6 +4,13 @@ import re
 import minimalmodbus
 
 
+PARITY = {
+    "none": "N",
+    "even": "E",
+    "odd": "O"
+}
+
+
 def check_for_numbers(input_str: str) -> bool:
     if len(re.findall("[^0-9 -]", input_str)) > 0:
         print("\nНеверный формат адресов\n")
@@ -41,26 +48,26 @@ def get_settings() -> tuple:
     stopbits = 1
     timeout = 0.5
     port = "/dev/ttyRS485-1"
-    with open("setting.txt", "r") as setf:
-        for line in setf:
+    with open("setting.txt", "r") as setting_file:
+        for line in setting_file:
             if line.startswith("addresses: "):
                 addresses = get_addresses(line.split(": ")[1].rstrip("\n"))
             elif line.startswith("baudrate: "):
                 baudrate = int(line.split(": ")[1])
-            elif line.startswith("databits: "):
+            elif line.startswith("bytesize: "):
                 bytesize = int(line.split(": ")[1])
             elif line.startswith("parity: "):
-                parity = line.split(": ")[1]
+                parity = PARITY.get(line.split(": ")[1].strip())
             elif line.startswith("stopbits: "):
                 stopbits = int(line.split(": ")[1])
             elif line.startswith("timeout: "):
                 timeout = float(line.split(": ")[1])
             elif line.startswith("port: "):
-                port = line.split(": ")[1]
+                port = line.split(": ")[1].strip()
     return addresses, baudrate, bytesize, parity, stopbits, timeout, port
 
 
-def cheking(port: str, addr: int, br: int, bs: int, pr: str, sb: int, to: float) -> bool:
+def checking(port: str, addr: int, br: int, bs: int, pr: str, sb: int, to: float) -> bool:
     device = minimalmodbus.Instrument(port=port, slaveaddress=addr, 
                                       close_port_after_each_call=True)
     device.serial.baudrate = br
@@ -70,16 +77,16 @@ def cheking(port: str, addr: int, br: int, bs: int, pr: str, sb: int, to: float)
     device.serial.timeout = to
 
     try:
-        device.read_bit(1)
+        device.read_register(1)
+        print(f"[{device.address}] +")
         return True
     except IOError:
-        print(f"Ошибка проверки связи с устройством по адресу {device.address}")
+        print(f"[{device.address}] -")
         return False
 
 
-def start():
-    addresses_online = []
-    addresses_to_check = []
+def start() -> None:
+    addresses_online: list = []
     addresses_to_check, baudrate, bytesize, parity, stopbits, timeout, port = get_settings()
     if len(addresses_to_check) != 0:
         if len(addresses_to_check) > 1:
@@ -87,14 +94,18 @@ def start():
         else:
             words = ["Этот", "", "ет", ""]
         print(f"{words[0]} адрес{words[1]} буд{words[2]} проверен{words[3]}: {addresses_to_check}\n"
-              "со следующими натройками:\n"
+              "со следующими настройками:\n"
               f"Порт: {port} : {baudrate} : {bytesize} {parity} {stopbits} (timeout: {timeout})")
+    else:
+        print("Отсутствуют адреса для проверки. Проверьте файл настроек.")
+        return None
     
     for address in addresses_to_check:
-        if cheking(port, address, baudrate, bytesize, parity, stopbits, timeout):
+        if checking(port, address, baudrate, bytesize, parity, stopbits, timeout):
             addresses_online.append(address)
 
-    print(f"Устройства на связи со следующими адресами:\n{addresses_online}")
+    print("-    -   -  - = = = -  -   -    -\n"
+          f"Устройства на связи со следующими адресами:\n{addresses_online}")
 
 
 if __name__ == '__main__':
